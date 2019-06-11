@@ -1,0 +1,122 @@
+Option Explicit
+
+Sub TickerTotal()
+
+'  COMPLETED THE EASY & MODERATE SECTIONS ONLY
+
+
+'Description:
+'   This script will look at the Stock Data spreadsheet, loop through Ticker info on each sheet
+'   and return a summary of Ticker Names, corresponding totals,  & the percent change from opening to closing.
+'
+'   This script assumes:
+'       1.  col A is sorted by value and has no breaks/blanks
+'       2.  col B is sorted by ascending dates
+'       3.  Yearly Change column is supposed to show 9 decimal places
+'
+'Modification History:
+'   DD-MMM-YYY  Author          Description
+'   07-06-2019  Stacey Smith    INITIAL CREATION
+'
+'
+
+
+Dim firstrow As String
+Dim lastrow As Long
+Dim sheet As Worksheet
+Dim total As Double
+Dim closePrice As Double
+Dim openPrice As Double
+
+
+
+'Start loop through sheets and create ticker total summary
+For Each sheet In Sheets
+
+
+
+'Create and format headers for the location where the ticker total summary will live
+    sheet.Range("I1").Value = "Ticker"
+    sheet.Range("L1").Value = "Total Stock Volume"
+    sheet.Range("J1").Value = "Yearly Change"
+    sheet.Range("K1").Value = "Percent Change"
+   
+
+
+'Initialize values
+    firstrow = sheet.Range("A2").Value
+    total = sheet.Range("G2").Value
+    lastrow = sheet.Cells(sheet.Rows.Count, 1).End(xlDown).row
+    'MsgBox lastrow
+    openPrice = sheet.Range("C2").Value
+    
+
+'Create var to advance the rows where the summarized data is written
+Dim writetoRow As Double
+writetoRow = 2
+
+
+Dim row As Long
+
+  
+'Start loop through rows on each sheet to populate the Ticker and TotalVol columns
+    For row = 3 To lastrow
+    
+    'Declare the vars for the Yearly Change and Percentage Change columns
+        Dim PriceChange As Double
+        PriceChange = (closePrice - openPrice)
+    
+        Dim PercentChange As Double
+        'PercentChange = (CStr(Format((PriceChange), ".000000000")) / (openPrice)) / 10
+        'sheet.Cells(row, 10).NumberFormat = ".00"
+        PercentChange = (PriceChange / openPrice)
+    
+        On Error Resume Next
+    
+    
+'Start looping through the data to pull the unique ticker names and the corresponding summarized data for each
+        If sheet.Cells(row, 1).Value = firstrow Then
+        total = total + sheet.Cells(row, 7).Value
+        closePrice = sheet.Cells(row, 6).Value
+        
+        
+        Else
+
+        sheet.Cells(writetoRow, 9).Value = firstrow
+        sheet.Cells(writetoRow, 12).Value = total
+        sheet.Cells(writetoRow, 10).Value = PriceChange
+        sheet.Cells(writetoRow, 10).NumberFormat = ".00"
+        sheet.Cells(writetoRow, 11).Value = PercentChange
+        
+            If sheet.Cells(writetoRow, 10).Value >= 0 Then
+            sheet.Cells(writetoRow, 10).Interior.Color = vbGreen
+            Else
+            sheet.Cells(writetoRow, 10).Interior.Color = vbRed
+            End If
+
+
+        writetoRow = writetoRow + 1
+
+        firstrow = sheet.Cells(row, 1).Value
+        total = sheet.Cells(row, 2).Value
+        openPrice = sheet.Cells(row, 3).Value
+        
+
+        End If
+        
+    
+    Next row
+    
+    
+'Tidying up
+sheet.Columns.AutoFit
+sheet.Range("J:J").NumberFormat = "0.000000000"
+sheet.Range("K:K").NumberFormat = "0.00%"
+    
+    
+Next sheet
+
+
+End Sub
+
+
